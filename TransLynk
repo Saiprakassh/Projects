@@ -68,6 +68,225 @@ Multilingual-Translator/
 ### 🙋‍♂️ Author
 C.Sai Prakash
 
+
+CODE
+import os
+import tkinter as tk
+from tkinter import END, filedialog, messagebox, ttk
+import speech_recognition as sr
+from googletrans import Translator
+from gtts import gTTS
+from pydub import AudioSegment
+from docx import Document
+import pythoncom
+import pygame
+
+pythoncom.CoInitialize()
+pygame.mixer.init()
+r = sr.Recognizer()
+
+# Splash Screen Setup
+main = tk.Tk()
+main.withdraw()
+
+splash = tk.Toplevel()
+splash.title("Launching...")
+splash.geometry("400x250")
+splash.overrideredirect(True)
+splash.configure(bg="#121212")
+
+screen_width = splash.winfo_screenwidth()
+screen_height = splash.winfo_screenheight()
+x = (screen_width - 400) // 2
+y = (screen_height - 250) // 2
+splash.geometry(f"+{x}+{y}")
+
+languages_anim = [
+    "Loading...", "लोड हो रहा है...", "読み込み中...", "Cargando...", "Chargement...",
+    "Загрузка...", "로딩 중...", "جار التحميل...", "লোড হচ্ছে...", "लोडिंग..."
+]
+loading_label = tk.Label(splash, text="", font=("Arial", 20, "bold"), fg="#00E676", bg="#121212")
+loading_label.pack(expand=True)
+
+lang_index = 0
+def animate_text():
+    global lang_index
+    loading_label.config(text=languages_anim[lang_index])
+    lang_index = (lang_index + 1) % len(languages_anim)
+    splash.after(400, animate_text)
+animate_text()
+
+# Main App Setup
+def launch_main():
+    splash.destroy()
+    main.deiconify()
+main.after(4000, launch_main)
+
+main.title("✨ Multilingual Translation Studio")
+main.geometry("1000x750")
+main.config(bg="#121212")
+main.resizable(False, False)
+
+# Languages
+lt = ["English", "Hindi", "Tamil", "Gujarati", "Marathi", "Telugu", "Bengali", "Kannada", "Malayalam",
+      "French", "Spanish", "German", "Chinese", "Japanese", "Russian", "Italian", "Portuguese", "Dutch",
+      "Turkish", "Arabic", "Korean", "Swedish", "Norwegian", "Danish", "Polish", "Czech", "Urdu"]
+code = ["en", "hi", "ta", "gu", "mr", "te", "bn", "kn", "ml", "fr", "es", "de", "zh-CN", "ja", "ru",
+        "it", "pt", "nl", "tr", "ar", "ko", "sv", "no", "da", "pl", "cs", "ur"]
+
+v1 = tk.StringVar(main)
+v2 = tk.StringVar(main)
+v1.set(lt[0])
+v2.set(lt[1])
+
+# Title
+ttk.Label(main, text="Multilingual Translation Studio", font=("Arial", 20, "bold"),
+          background="#121212", foreground="#00E676").pack(pady=20)
+
+frame1 = tk.Frame(main, bg="#1E1E1E", padx=20, pady=20)
+frame1.pack(pady=10)
+
+ttk.Label(frame1, text="Input Text:", background="#1E1E1E", foreground="white", font=("Arial", 12, "bold")).grid(row=0, column=0)
+input_text = tk.Text(frame1, height=10, width=50, font=("Arial", 12))
+input_text.grid(row=1, column=0, padx=10, pady=5)
+
+ttk.Label(frame1, text="Translated Text:", background="#1E1E1E", foreground="white", font=("Arial", 12, "bold")).grid(row=0, column=1)
+output_text = tk.Text(frame1, height=10, width=50, font=("Arial", 12))
+output_text.grid(row=1, column=1, padx=10, pady=5)
+
+# Functions
+def upload_text_file():
+    file_path = filedialog.askopenfilename()
+    if not file_path:
+        return
+    input_text.delete("1.0", END)
+    if file_path.endswith(".txt"):
+        with open(file_path, "r", encoding="utf-8") as f:
+            input_text.insert(END, f.read())
+    elif file_path.endswith(".docx"):
+        doc = Document(file_path)
+        for para in doc.paragraphs:
+            input_text.insert(END, para.text + "\n")
+
+def upload_audio_file():
+    file_path = filedialog.askopenfilename(filetypes=[("Audio", "*.mp3 *.wav")])
+    if not file_path:
+        return
+    input_text.delete("1.0", END)
+    try:
+        lang = code[lt.index(v1.get())]
+        temp = "temp.wav"
+        if file_path.endswith(".mp3"):
+            AudioSegment.from_mp3(file_path).export(temp, format="wav")
+            file_path = temp
+        with sr.AudioFile(file_path) as source:
+            audio = r.record(source)
+            text = r.recognize_google(audio, language=lang)
+            input_text.insert(END, text)
+        if os.path.exists(temp):
+            os.remove(temp)
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def listen_and_translate():
+    input_text.delete("1.0", END)
+    output_text.delete("1.0", END)
+    try:
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source, duration=1)
+            audio = r.listen(source, timeout=5)
+            speech = r.recognize_google(audio, language=code[lt.index(v1.get())])
+            input_text.insert(END, speech)
+            translated = Translator().translate(speech, dest=code[lt.index(v2.get())])
+            output_text.insert(END, translated.text)
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def translate():
+    output_text.delete("1.0", END)
+    text = input_text.get("1.0", END).strip()
+    if not text:
+        messagebox.showwarning("Warning", "Enter text first!")
+        return
+    try:
+        translated = Translator().translate(text, dest=code[lt.index(v2.get())])
+        output_text.insert(END, translated.text)
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def speak():
+    text = output_text.get("1.0", END).strip()
+    if not text:
+        return
+    try:
+        speech = gTTS(text=text, lang=code[lt.index(v2.get())])
+        if not os.path.exists("temp"): os.mkdir("temp")
+        path = os.path.join("temp", "speak.mp3")
+        speech.save(path)
+        pygame.mixer.music.load(path)
+        pygame.mixer.music.play()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def stop_speaking():
+    pygame.mixer.music.stop()
+
+def save_text():
+    text = output_text.get("1.0", END).strip()
+    if not text:
+        return
+    file = filedialog.asksaveasfilename(defaultextension=".txt")
+    with open(file, "w", encoding="utf-8") as f:
+        f.write(text)
+
+def save_audio():
+    text = output_text.get("1.0", END).strip()
+    if not text:
+        return
+    file = filedialog.asksaveasfilename(defaultextension=".mp3")
+    gTTS(text=text, lang=code[lt.index(v2.get())]).save(file)
+
+# Buttons
+def create_button(parent, text, cmd, row, col, color="#00ACC1"):
+    btn = tk.Button(parent, text=text, command=cmd, bg=color, fg="white", font=("Arial", 10, "bold"),
+                    padx=10, pady=6, relief="flat", cursor="hand2", activebackground="#333333")
+    btn.grid(row=row, column=col, padx=10, pady=5, sticky="ew")
+
+button_frame = tk.Frame(main, bg="#121212")
+button_frame.pack(pady=10)
+button_frame.grid_columnconfigure((0,1,2), weight=1)
+
+buttons = [
+    ("📄 Upload File", upload_text_file, "#1E88E5"),
+    ("🎙️ Upload Audio", upload_audio_file, "#00ACC1"),
+    ("🎧 Listen & Translate", listen_and_translate, "#8E24AA"),
+    ("📝 Translate", translate, "#43A047"),
+    ("🔊 Speak", speak, "#FB8C00"),
+    ("⛔ Stop", stop_speaking, "#E53935"),
+    ("💾 Save Text", save_text, "#6D4C41"),
+    ("🎵 Save Audio", save_audio, "#3949AB")
+]
+
+for i, (txt, func, color) in enumerate(buttons):
+    create_button(button_frame, txt, func, i // 3, i % 3, color)
+
+# Dropdowns
+lang_frame = tk.Frame(main, bg="#121212")
+lang_frame.pack(pady=10)
+ttk.Label(lang_frame, text="Input Language:", background="#121212", foreground="white").pack(side="left")
+ttk.Combobox(lang_frame, textvariable=v1, values=lt, state="readonly", width=20).pack(side="left", padx=10)
+ttk.Label(lang_frame, text="Output Language:", background="#121212", foreground="white").pack(side="left")
+ttk.Combobox(lang_frame, textvariable=v2, values=lt, state="readonly", width=20).pack(side="left", padx=10)
+
+# Run
+if __name__ == "__main__":
+    try:
+        main.mainloop()
+    finally:
+        pygame.mixer.quit()
+        pythoncom.CoUninitialize()
+
+
 Made with ❤️ using Python
 📃 License
 
