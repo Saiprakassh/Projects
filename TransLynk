@@ -1,7 +1,7 @@
 
- ✨ **Multilingual Translation Studio**
+ ✨ Multilingual Translation Studio
 
-*A powerful GUI-based app to translate, transcribe, and vocalize text/audio in 25+ languages.*
+A powerful GUI-based app to translate, transcribe, and vocalize text/audio in 25+ languages.
 
 
  🖥️ Features
@@ -14,9 +14,9 @@
 * 💫 **Animated Splash Screen** – Loading animation in multiple languages
 * 🧑‍💻 **User-Friendly GUI** – Built using Python's Tkinter, with modern dark theme
 
-### 🚀 Getting Started
+🚀 Getting Started
 
-#### ✅ Prerequisites
+ ✅ Prerequisites
 
 Make sure you have Python 3.10+ installed. Install required packages with:
 
@@ -31,7 +31,7 @@ pip install gTTS
 pip install pygame
 pip install pydub
 pip install python-docx
-```
+
 
 You may also need:
 
@@ -39,7 +39,7 @@ You may also need:
 
 
 
-### 📦 How to Run
+ 📦 How to Run
 
 bash
 python main.py
@@ -53,9 +53,9 @@ Multilingual-Translator/
 ├── temp/                # For storing generated audio
 ├── README.md
 
-### 🔤 Supported Languages
+🔤 Supported Languages
 
-* English, Hindi, Tamil, Telugu, French, Spanish, German, Arabic, Chinese, Japanese, Russian, etc. *(27 total)*
+ English, Hindi, Tamil, Telugu, French, Spanish, German, Arabic, Chinese, Japanese, Russian, etc. (27 total)
 
 
 💡 Future Improvements
@@ -65,11 +65,9 @@ Multilingual-Translator/
 * Improve TTS voice control (speed, pitch, gender)
 * Integrate with Whisper/OpenAI for more accurate speech recognition
 
-### 🙋‍♂️ Author
-C.Sai Prakash
 
 
-CODE
+CODE:
 import os
 import tkinter as tk
 from tkinter import END, filedialog, messagebox, ttk
