@@ -68,10 +68,4 @@ Multilingual-Translator/
 ### 🙋‍♂️ Author
 C.Sai Prakash
 
-Made with ❤️ using Python
-📃 License
 
-This project is open-source under the MIT License.
-
-
-Would you like me to generate this `README.md` file and include it in your project code?
